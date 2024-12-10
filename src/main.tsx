@@ -20,6 +20,7 @@ import ResetPassword from "./components/auth/reset-password";
 import UserAccounts from "./components/home-page/user-accounts";
 import CreateCourse from "./components/home-page/create-course";
 import AvailableCourses from "./components/home-page/available-courses";
+import CourseRequest from "./components/home-page/course-request";
 
 const router = createBrowserRouter([
   {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: "available-courses",
         element: <AvailableCourses />,
+      },
+      {
+        path: "course-request",
+        element: <CourseRequest />,
       },
     ],
   },

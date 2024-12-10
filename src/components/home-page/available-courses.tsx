@@ -41,6 +41,7 @@ function AvailableCourses() {
       }
 
       const data = await response.json();
+      console.log(data);
 
       setShowData(data.data);
       setIsDataLoading(false);

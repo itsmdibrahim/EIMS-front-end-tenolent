@@ -158,7 +158,7 @@ const CoursesTable = ({
       setIsSubmitting(false);
     }
   }
-  async function handleEnroll(e: any) {
+  async function handleEnroll(e: any, courseInfo: any) {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -166,9 +166,12 @@ const CoursesTable = ({
 
     try {
       const response = await fetch(url, {
-        method: "PUT",
+        method: "POST",
         headers,
-        body: JSON.stringify(sendData),
+        body: JSON.stringify({
+          userInfo: userData.id,
+          courseInfo,
+        }),
       });
 
       if (!response.ok) {
@@ -411,7 +414,7 @@ const CoursesTable = ({
                           title="assign schedule"
                           className="capitalize"
                           onClick={(e: any) => {
-                            handleEnroll(e);
+                            handleEnroll(e, row._id);
                           }}
                         >
                           enroll
