@@ -92,6 +92,19 @@ function ProfileSettings() {
         onSubmit={handleSubmit}
       >
         <div>
+          <Label htmlFor={`name`} className="capitalize">
+            name
+          </Label>
+          <Input
+            id={`name`}
+            name="name"
+            type="text"
+            placeholder={userData.name ? userData.name : ``}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
           <Label htmlFor={`contact`} className="capitalize">
             contact
           </Label>
@@ -101,9 +114,6 @@ function ProfileSettings() {
             type="text"
             placeholder={userData.contact ? userData.contact : ``}
             onChange={handleChange}
-            {...(sendData[`firstName`]
-              ? { value: sendData[`firstName`] }
-              : { value: `` })}
           />
         </div>
 
@@ -117,9 +127,6 @@ function ProfileSettings() {
             type="text"
             placeholder={userData.address ? userData.address : ``}
             onChange={handleChange}
-            {...(sendData[`lastName`]
-              ? { value: sendData[`lastName`] }
-              : { value: `` })}
           />
         </div>
 

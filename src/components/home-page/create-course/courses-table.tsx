@@ -6,9 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PiBowlSteamFill } from "react-icons/pi";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { MdAssignmentAdd } from "react-icons/md";
+import { GrSchedule } from "react-icons/gr";
 
 import { useEffect, useRef, useState } from "react";
 import { RiDeleteBin6Fill } from "react-icons/ri";
@@ -25,9 +23,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Cookies from "js-cookie";
-import AddBtn from "../../../common/add-btn";
 import ShowAlert from "../../../common/show-alert";
 import PreLoader from "../../../common/pre-loader";
+import AddBtn from "@/common/add-btn";
+import { IoIosAddCircle } from "react-icons/io";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 // Sending data using fetch
 const token: string | undefined = Cookies.get(
@@ -56,6 +57,8 @@ const CoursesTable = ({
   const [isOpen, setIsOpen] = useState<any>(false);
   const [delId, setDelId] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState<any>(null);
+  const [sendData, setSendData] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -102,70 +105,6 @@ const CoursesTable = ({
       });
   }
 
-  function handleFacultyUpdate(e: any, type: any, userId: any) {
-    e.target.setAttribute("disabled", "true");
-    e.target
-      .closest(".load-container")
-      .querySelector(".spinner")
-      .classList.remove("hidden");
-
-    // PUT request using fetch()
-    fetch(
-      `${
-        import.meta.env.VITE_API_URL
-      }/api/auth/faculty-status-update/${userId}`,
-      {
-        method: "PUT",
-        headers,
-        body: JSON.stringify({ isFaculty: type == "faculty" ? true : false }),
-      }
-    )
-      .then((res) => res.json())
-      .then((res) => {
-        console.log(res.data);
-
-        setData((prev: any) => {
-          return [
-            ...prev.map((item: any) => {
-              if (item._id == res.data._id) {
-                return res.data;
-              } else {
-                return item;
-              }
-            }),
-          ];
-        });
-
-        toast({
-          title: "Update.",
-          description: "user updated successfully!",
-        });
-
-        e.target
-          .closest(".load-container")
-          .querySelector(".spinner")
-          .classList.add("hidden");
-        e.target.removeAttribute("disabled", "true");
-      })
-      .catch((err) => {
-        console.log(err);
-
-        toast({
-          title: "Uh oh! Something went wrong.",
-          description: "There was a problem with your request.",
-        });
-        e.target
-          .closest(".load-container")
-          .querySelector(".spinner")
-          .classList.add("hidden");
-        e.target.removeAttribute("disabled", "true");
-      });
-  }
-
-  function handleAssignCourses(e: any) {
-    console.log(e);
-  }
-
   const handleDialogChange = (open: boolean, e: any) => {
     setIsOpen(open);
 
@@ -176,8 +115,46 @@ const CoursesTable = ({
     }
   };
 
+  function handleChange(e: any) {
+    setSendData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function handleAdd(e: any) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const url = `${import.meta.env.VITE_API_URL}/api/course/files/update`; // Replace with your API URL
+
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(sendData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      window.location.reload();
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+
+      toast({
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem with your request.",
+      });
+      setIsSubmitting(false);
+    }
+  }
+
   useEffect(() => {
     setData(showData);
+
+    console.log(showData);
 
     if (isDataLoading) {
       preloaderRef && preloaderRef.current.classList.remove("hidden");
@@ -248,11 +225,16 @@ const CoursesTable = ({
               {data.map((row: any, index: any) => (
                 <TableRow key={index} className="grid grid-cols-3 gap-2">
                   <TableCell className="w-auto truncate lg:p-4 p-1 lg:text-base text-[9px]">
-                    {row.email}
+                    {row.courseName}
                   </TableCell>
                   <TableCell className="lg:p-4 p-1 lg:text-base text-xs">
                     <div className="w-full flex gap-2 items-center justify-start">
-                      <span className="text-light-black">{row.userType}</span>
+                      <span className="text-light-black">
+                        {row.description && `description: ${row.description}`}{" "}
+                        <br />
+                        {row.duration && `duration: ${row.duration}`} <br />
+                        {row.credits && `description: ${row.credits}`}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="lg:p-4 p-1 lg:text-base text-xs">
@@ -263,7 +245,7 @@ const CoursesTable = ({
                       >
                         <DialogTrigger
                           title="delete"
-                          className="w-fit py-1 px-2 hover:bg-secondary text-primary grid place-content-center"
+                          className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
                         >
                           <RiDeleteBin6Fill className="hover:cursor-pointer" />
                         </DialogTrigger>
@@ -298,42 +280,75 @@ const CoursesTable = ({
                         </DialogContent>
                       </Dialog>
 
-                      <div className="load-container relative">
-                        <Button
-                          title="make faculty"
-                          variant={`ghost`}
-                          className={`capitalize ${
-                            row.userType == "faculty" ? `bg-theme-active` : ``
-                          }`}
-                          onClick={(e: any) => {
-                            handleFacultyUpdate(e, row.userType, row._id);
-                          }}
+                      <Dialog
+                        open={isOpen}
+                        onOpenChange={(e) => handleDialogChange(e, "id")}
+                      >
+                        <DialogTrigger
+                          title="delete"
+                          className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
                         >
-                          <PiBowlSteamFill />
-                        </Button>
+                          <IoIosAddCircle className="text-3xl hover:cursor-pointer" />
+                        </DialogTrigger>
 
-                        <AiOutlineLoading3Quarters className="spinner hidden text-primary text-sm animate-spin absolute top-1/3 left-1/3 -tranalate-x-1/2 -tranalate-y-1/2" />
-                      </div>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add</DialogTitle>
+                            <DialogDescription>
+                              This action cannot be undone.
+                            </DialogDescription>
+                          </DialogHeader>
 
-                      <div className="load-container relative">
-                        <Button
-                          title="assign courses"
-                          variant={`ghost`}
-                          className={`capitalize ${
-                            row.courses.length > 0 ? `bg-theme-active` : ``
-                          }`}
-                          onClick={(e: any) => {
-                            handleAssignCourses(e);
-                          }}
-                        >
-                          <MdAssignmentAdd />
-                          {row.courses.length > 0
-                            ? ` ${row.courses.length}`
-                            : ``}
-                        </Button>
+                          <form onSubmit={(e: any) => handleAdd(e)}>
+                            <div className="grid gap-2">
+                              <div>
+                                <Label htmlFor="url" />
+                                <Input
+                                  id="url"
+                                  type="text"
+                                  name="url"
+                                  placeholder="url"
+                                  onChange={handleChange}
+                                />
+                              </div>
 
-                        <AiOutlineLoading3Quarters className="spinner hidden text-primary text-sm animate-spin absolute top-1/3 left-1/3 -tranalate-x-1/2 -tranalate-y-1/2" />
-                      </div>
+                              <div>
+                                <Label htmlFor="type" />
+                                <Input
+                                  id="type"
+                                  type="text"
+                                  placeholder="type"
+                                  name="type"
+                                  onChange={handleChange}
+                                />
+                              </div>
+                            </div>
+
+                            <DialogFooter className="mt-5">
+                              <DialogClose>
+                                <Button
+                                  variant={"secondary"}
+                                  className="text-sm hover:bg-secondary"
+                                >
+                                  Cancel
+                                </Button>
+                              </DialogClose>
+
+                              <div>
+                                <AddBtn
+                                  isSubmitting={isSubmitting}
+                                  title={`add`}
+                                  className="text-sm"
+                                />
+                              </div>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Button title="assign schedule" variant={`ghost`}>
+                        <GrSchedule />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

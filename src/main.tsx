@@ -18,6 +18,7 @@ import ForgotPassword from "./components/auth/forgot-password";
 import Varification from "./components/auth/varification";
 import ResetPassword from "./components/auth/reset-password";
 import UserAccounts from "./components/home-page/user-accounts";
+import CreateCourse from "./components/home-page/create-course";
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
       {
         path: "user-accounts",
         element: <UserAccounts />,
+      },
+      {
+        path: "create-course",
+        element: <CreateCourse />,
       },
     ],
   },

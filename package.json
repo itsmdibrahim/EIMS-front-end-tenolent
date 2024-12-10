@@ -36,6 +36,7 @@
     "vaul": "^1.1.1"
   },
   "devDependencies": {
+    "@babel/generator": "^7.26.3",
     "@eslint/js": "^9.13.0",
     "@types/jest": "^29.5.14",
     "@types/js-cookie": "^3.0.6",
