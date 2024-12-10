@@ -26,6 +26,10 @@ export const sidebarNavItems: any = {
       href: "/available-courses",
     },
     {
+      title: "pending courses",
+      href: "/pending-courses",
+    },
+    {
       title: "my courses",
       href: "/my-courses",
     },
@@ -44,6 +48,10 @@ export const sidebarNavItems: any = {
     {
       title: "create course",
       href: "/create-course",
+    },
+    {
+      title: "course request",
+      href: "/course-request",
     },
   ],
 };

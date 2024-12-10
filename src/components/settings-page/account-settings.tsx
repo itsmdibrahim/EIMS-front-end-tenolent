@@ -7,6 +7,17 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Cookies from "js-cookie";
 import ShowAlert from "@/common/show-alert";
+const token: string | undefined = Cookies.get(
+  import.meta.env.VITE_AUTH_TOKEN_KEY
+); // Replace with your token (or undefined for testing)
+// Create headers dynamically
+const headers: Record<string, string> = {
+  "Content-Type": "application/json",
+};
+
+if (token) {
+  headers[import.meta.env.VITE_AUTH_TOKEN_KEY] = token;
+}
 
 function AccountSettings() {
   let userData = JSON.parse(
@@ -31,9 +42,7 @@ function AccountSettings() {
       `${import.meta.env.VITE_API_URL}/api/auth/account/update/${userData.id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(sendData),
       }
     )

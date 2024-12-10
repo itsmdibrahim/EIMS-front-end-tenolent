@@ -6,6 +6,17 @@ import AddBtn from "@/common/add-btn";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Cookies from "js-cookie";
+const token: string | undefined = Cookies.get(
+  import.meta.env.VITE_AUTH_TOKEN_KEY
+); // Replace with your token (or undefined for testing)
+// Create headers dynamically
+const headers: Record<string, string> = {
+  "Content-Type": "application/json",
+};
+
+if (token) {
+  headers[import.meta.env.VITE_AUTH_TOKEN_KEY] = token;
+}
 
 function ProfileSettings() {
   let [userData, setUserData] = useState<any>(getCookie());
@@ -33,36 +44,13 @@ function ProfileSettings() {
       `${import.meta.env.VITE_API_URL}/api/auth/profile/update/${userData.id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(sendData),
       }
     )
       .then((res) => res.json())
-      .then((res) => {
-        let newUserCookieData = {
-          ...userData,
-          contact: res.data.contact,
-          address: res.data.address,
-        };
-
-        Cookies.set(
-          import.meta.env.VITE_AUTH_USER_DATA,
-          JSON.stringify(newUserCookieData),
-          {
-            expires: 1,
-          }
-        ); // Expires in 1 days
-
-        toast({
-          title: "Update.",
-          description: "Name updated successfully!",
-        });
-
-        setSendData({});
-        setUserData(getCookie());
-        setIsSubmitting(false);
+      .then(() => {
+        window.location.reload();
       })
       .catch((err) => {
         console.log(err);

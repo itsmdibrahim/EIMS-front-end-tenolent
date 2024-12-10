@@ -31,6 +31,7 @@ import AddBtn from "@/common/add-btn";
 import { IoIosAddCircle } from "react-icons/io";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useOutletContext } from "react-router-dom";
 
 // Sending data using fetch
 const token: string | undefined = Cookies.get(
@@ -52,11 +53,15 @@ const CoursesTable = ({
   setShowData,
   tableContainer,
 }: any) => {
+  const { userData }: any = useOutletContext();
   const preloaderRef = useRef<any>(null);
+
+  console.log(userData);
 
   // Sample data for the table with ISO date strings
   const [data, setData] = useState<any>(showData);
   const [isOpen, setIsOpen] = useState<any>(false);
+  const [isOpenAdd, setIsOpenAdd] = useState<any>(false);
   const [delId, setDelId] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState<any>(null);
   const [sendData, setSendData] = useState({});
@@ -71,7 +76,7 @@ const CoursesTable = ({
       headers[import.meta.env.VITE_AUTH_TOKEN_KEY] = token;
     }
 
-    fetch(`${import.meta.env.VITE_API_URL}/api/auth/delete/user/${delId}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/course/delete/${delId}`, {
       method: "DELETE",
       headers,
     })
@@ -83,17 +88,9 @@ const CoursesTable = ({
             description: "Data deleted successfully!",
           });
 
-          setData((prev: any) => {
-            return [...prev.filter((item: any) => item._id !== delId)];
-          });
-
-          if (setShowData) {
-            setShowData((prev: any) => {
-              return [...prev.filter((item: any) => item._id !== delId)];
-            });
-          }
-
           setIsDeleting(false);
+
+          window.location.reload();
         }
       })
       .catch((err: any) => {
@@ -116,6 +113,15 @@ const CoursesTable = ({
       setDelId("null");
     }
   };
+  const handleDialogChangeAdd = (open: boolean, e: any) => {
+    setIsOpenAdd(open);
+
+    if (open) {
+      //open
+    } else {
+      //open
+    }
+  };
 
   function handleChange(e: any) {
     setSendData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -126,6 +132,37 @@ const CoursesTable = ({
     setIsSubmitting(true);
 
     const url = `${import.meta.env.VITE_API_URL}/api/course/files/update`; // Replace with your API URL
+
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(sendData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      window.location.reload();
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+
+      toast({
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem with your request.",
+      });
+      setIsSubmitting(false);
+    }
+  }
+  async function handleEnroll(e: any) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const url = `${import.meta.env.VITE_API_URL}/api/pending-course/add`; // Replace with your API URL
 
     try {
       const response = await fetch(url, {
@@ -240,126 +277,147 @@ const CoursesTable = ({
                     </div>
                   </TableCell>
                   <TableCell className="lg:p-4 p-1 lg:text-base text-xs">
-                    <div className="flex lg:flex-row flex-col gap-2 items-center justify-center">
-                      <Dialog
-                        open={isOpen}
-                        onOpenChange={(e) => handleDialogChange(e, row._id)}
-                      >
-                        <DialogTrigger
-                          title="delete"
-                          className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
+                    {userData.userType != `student` && (
+                      <div className="flex lg:flex-row flex-col gap-2 items-center justify-center">
+                        {userData.userType == `admin` && (
+                          <Dialog
+                            open={isOpen}
+                            onOpenChange={(e) => handleDialogChange(e, row._id)}
+                          >
+                            <DialogTrigger
+                              title="delete"
+                              className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
+                            >
+                              <RiDeleteBin6Fill className="hover:cursor-pointer" />
+                            </DialogTrigger>
+
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Are you absolutely sure?
+                                </DialogTitle>
+                                <DialogDescription>
+                                  This action cannot be undone.
+                                </DialogDescription>
+                              </DialogHeader>
+
+                              <DialogFooter>
+                                <DialogClose>
+                                  <Button
+                                    variant={"secondary"}
+                                    className="text-sm hover:bg-secondary"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+
+                                <div>
+                                  <AddBtn
+                                    isSubmitting={isDeleting}
+                                    title={`Delete`}
+                                    className="text-sm"
+                                    onClick={() => handleDelete()}
+                                  />
+                                </div>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+
+                        <Dialog
+                          open={isOpenAdd}
+                          onOpenChange={(e) => handleDialogChangeAdd(e, "id")}
                         >
-                          <RiDeleteBin6Fill className="hover:cursor-pointer" />
-                        </DialogTrigger>
+                          <DialogTrigger
+                            title="add files(url)"
+                            className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
+                          >
+                            <IoIosAddCircle className="text-3xl hover:cursor-pointer" />
+                          </DialogTrigger>
 
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Are you absolutely sure?</DialogTitle>
-                            <DialogDescription>
-                              This action cannot be undone.
-                            </DialogDescription>
-                          </DialogHeader>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add</DialogTitle>
+                              <DialogDescription>
+                                This action cannot be undone.
+                              </DialogDescription>
+                            </DialogHeader>
 
-                          <DialogFooter>
-                            <DialogClose>
-                              <Button
-                                variant={"secondary"}
-                                className="text-sm hover:bg-secondary"
-                              >
-                                Cancel
-                              </Button>
-                            </DialogClose>
+                            <form onSubmit={(e: any) => handleAdd(e)}>
+                              <div className="grid gap-2">
+                                <div>
+                                  <Label htmlFor="url" />
+                                  <Input
+                                    id="url"
+                                    type="text"
+                                    name="url"
+                                    placeholder="url"
+                                    onChange={handleChange}
+                                  />
+                                </div>
 
-                            <div>
-                              <AddBtn
-                                isSubmitting={isDeleting}
-                                title={`Delete`}
-                                className="text-sm"
-                                onClick={() => handleDelete()}
-                              />
-                            </div>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                                <div>
+                                  <Label htmlFor="type" />
+                                  <Input
+                                    id="type"
+                                    type="text"
+                                    placeholder="type"
+                                    name="type"
+                                    onChange={handleChange}
+                                  />
+                                </div>
+                              </div>
 
-                      <Dialog
-                        open={isOpen}
-                        onOpenChange={(e) => handleDialogChange(e, "id")}
-                      >
-                        <DialogTrigger
-                          title="add files(url)"
-                          className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
+                              <DialogFooter className="mt-5">
+                                <DialogClose>
+                                  <Button
+                                    variant={"secondary"}
+                                    className="text-sm hover:bg-secondary"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+
+                                <div>
+                                  <AddBtn
+                                    isSubmitting={isSubmitting}
+                                    title={`add`}
+                                    className="text-sm"
+                                  />
+                                </div>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+
+                        {userData.userType == `admin` && (
+                          <Button title="assign faculty" variant={`ghost`}>
+                            <MdAssignmentInd className="text-3xl" />
+                          </Button>
+                        )}
+
+                        <Button title="assign schedule" variant={`ghost`}>
+                          <GrSchedule className="text-3xl" />
+                        </Button>
+
+                        <Button title="assign schedule" variant={`ghost`}>
+                          <MdEdit className="text-3xl" />
+                        </Button>
+                      </div>
+                    )}
+                    {userData.userType == `student` && (
+                      <div className="flex lg:flex-row flex-col gap-2 items-center justify-center">
+                        <Button
+                          title="assign schedule"
+                          className="capitalize"
+                          onClick={(e: any) => {
+                            handleEnroll(e);
+                          }}
                         >
-                          <IoIosAddCircle className="text-3xl hover:cursor-pointer" />
-                        </DialogTrigger>
-
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Add</DialogTitle>
-                            <DialogDescription>
-                              This action cannot be undone.
-                            </DialogDescription>
-                          </DialogHeader>
-
-                          <form onSubmit={(e: any) => handleAdd(e)}>
-                            <div className="grid gap-2">
-                              <div>
-                                <Label htmlFor="url" />
-                                <Input
-                                  id="url"
-                                  type="text"
-                                  name="url"
-                                  placeholder="url"
-                                  onChange={handleChange}
-                                />
-                              </div>
-
-                              <div>
-                                <Label htmlFor="type" />
-                                <Input
-                                  id="type"
-                                  type="text"
-                                  placeholder="type"
-                                  name="type"
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-
-                            <DialogFooter className="mt-5">
-                              <DialogClose>
-                                <Button
-                                  variant={"secondary"}
-                                  className="text-sm hover:bg-secondary"
-                                >
-                                  Cancel
-                                </Button>
-                              </DialogClose>
-
-                              <div>
-                                <AddBtn
-                                  isSubmitting={isSubmitting}
-                                  title={`add`}
-                                  className="text-sm"
-                                />
-                              </div>
-                            </DialogFooter>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Button title="assign faculty" variant={`ghost`}>
-                        <MdAssignmentInd className="text-3xl" />
-                      </Button>
-
-                      <Button title="assign schedule" variant={`ghost`}>
-                        <GrSchedule className="text-3xl" />
-                      </Button>
-
-                      <Button title="assign schedule" variant={`ghost`}>
-                        <MdEdit className="text-3xl" />
-                      </Button>
-                    </div>
+                          enroll
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

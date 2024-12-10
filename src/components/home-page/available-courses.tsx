@@ -1,12 +1,19 @@
-import { useEffect, useRef } from "react";
-import { useOutletContext } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import Cookies from "js-cookie";
+import { coursesTableHead } from "@/consts";
+import CoursesTable from "./create-course/courses-table";
+import { useEffect, useState } from "react";
 
-function Dashboard() {
-  const preloaderAllTimeRef = useRef<any>(null);
+import Cookies from "js-cookie";
+import { useToast } from "@/hooks/use-toast";
+import { useOutletContext } from "react-router-dom";
+
+function AvailableCourses() {
   const { userData }: any = useOutletContext();
+  const [showData, setShowData] = useState<any>([]);
+  const [isDataLoading, setIsDataLoading] = useState<any>(true);
+  console.log(userData);
+
   const { toast } = useToast();
+
   const token: string | undefined = Cookies.get(
     import.meta.env.VITE_AUTH_TOKEN_KEY
   ); // Replace with your token (or undefined for testing)
@@ -20,7 +27,8 @@ function Dashboard() {
   }
 
   const fetchDataWithToken = async () => {
-    const url = `${import.meta.env.VITE_API_URL}/api/auth/get/${userData.id}`; // Replace with your API URL
+    setIsDataLoading(true);
+    const url = `${import.meta.env.VITE_API_URL}/api/course/get`; // Replace with your API URL
 
     try {
       const response = await fetch(url, {
@@ -34,10 +42,8 @@ function Dashboard() {
 
       const data = await response.json();
 
-      console.log(data);
-
-      preloaderAllTimeRef &&
-        preloaderAllTimeRef.current.classList.add("hidden");
+      setShowData(data.data);
+      setIsDataLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
 
@@ -45,22 +51,24 @@ function Dashboard() {
         title: "Uh oh! Something went wrong.",
         description: "There was a problem with your request.",
       });
-      preloaderAllTimeRef &&
-        preloaderAllTimeRef.current.classList.add("hidden");
+      setIsDataLoading(false);
     }
   };
 
   useEffect(() => {
     fetchDataWithToken();
   }, []);
+
   return (
-    <div className="grid gap-20 lg:px-10 px-5 pt-5">
-      <h2 className="text-3xl capitalize text-primary">
-        welcome back{" "}
-        {userData.name && userData.name != `` && `, ${userData.name}`}
-      </h2>
+    <div className="relative lg:px-10 px-5 h-full pt-5">
+      <CoursesTable
+        tableHead={coursesTableHead}
+        showData={showData}
+        setShowData={setShowData}
+        isDataLoading={isDataLoading}
+      />
     </div>
   );
 }
 
-export default Dashboard;
+export default AvailableCourses;
