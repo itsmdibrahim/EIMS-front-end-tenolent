@@ -7,6 +7,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GrSchedule } from "react-icons/gr";
+import { MdAssignmentInd } from "react-icons/md";
+import { MdEdit } from "react-icons/md";
 
 import { useEffect, useRef, useState } from "react";
 import { RiDeleteBin6Fill } from "react-icons/ri";
@@ -285,7 +287,7 @@ const CoursesTable = ({
                         onOpenChange={(e) => handleDialogChange(e, "id")}
                       >
                         <DialogTrigger
-                          title="delete"
+                          title="add files(url)"
                           className="w-fit p-2 hover:bg-secondary text-primary grid place-content-center"
                         >
                           <IoIosAddCircle className="text-3xl hover:cursor-pointer" />
@@ -346,8 +348,16 @@ const CoursesTable = ({
                         </DialogContent>
                       </Dialog>
 
+                      <Button title="assign faculty" variant={`ghost`}>
+                        <MdAssignmentInd className="text-3xl" />
+                      </Button>
+
                       <Button title="assign schedule" variant={`ghost`}>
-                        <GrSchedule />
+                        <GrSchedule className="text-3xl" />
+                      </Button>
+
+                      <Button title="assign schedule" variant={`ghost`}>
+                        <MdEdit className="text-3xl" />
                       </Button>
                     </div>
                   </TableCell>

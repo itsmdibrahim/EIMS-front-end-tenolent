@@ -25,8 +25,10 @@ function CreateCourse() {
   const [showData, setShowData] = useState<any>([]);
   const [isDataLoading, setIsDataLoading] = useState<any>(true);
   const [isSubmitting, setIsSubmitting] = useState<any>(null);
+  console.log(userData);
+
   const [sendData, setSendData] = useState({
-    userInfo: userData._id,
+    userInfo: userData.id,
   });
   const [isOpen, setIsOpen] = useState<any>(false);
   const { toast } = useToast();
@@ -50,6 +52,7 @@ function CreateCourse() {
   async function handleAdd(e: any) {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log(sendData);
 
     const url = `${import.meta.env.VITE_API_URL}/api/course/add`; // Replace with your API URL
 
@@ -94,7 +97,12 @@ function CreateCourse() {
 
   const fetchDataWithToken = async () => {
     setIsDataLoading(true);
-    const url = `${import.meta.env.VITE_API_URL}/api/course/get`; // Replace with your API URL
+    const url =
+      userData.userType == "admin"
+        ? `${import.meta.env.VITE_API_URL}/api/course/get`
+        : `${import.meta.env.VITE_API_URL}/api/course/one-person/get/${
+            userData.id
+          }`; // Replace with your API URL
 
     try {
       const response = await fetch(url, {
